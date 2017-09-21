@@ -1,5 +1,6 @@
 var axios = require('../../../index');
 var http = require('http');
+var https = require('https');
 var url = require('url');
 var zlib = require('zlib');
 var fs = require('fs');
@@ -87,6 +88,39 @@ module.exports = {
         test.done();
       });
     });
+  },
+
+  testRedirectMixedProtocols: function(test) {
+    function testRedirectRequest() {
+      axios.get('http://localhost:4444/test', {
+        httpAgent: new http.Agent({
+          keepAlive: true,
+          keepAliveMsecs: 1000,
+          maxSockets: 100,
+          maxFreeSockets: 50
+        }),
+        httpsAgent: new https.Agent({
+          keepAlive: true,
+          keepAliveMsecs: 2000,
+          maxSockets: 100,
+          maxFreeSockets: 60
+        })
+      }).then(function(res) {
+        // test.equal(res.data, str);
+        test.equal(res.request.path, '/');
+        test.done();
+      })
+      .catch(function(e) {
+        console.error(e);
+        throw e;
+      });
+    }
+
+    server = http.createServer(function(req, res) {
+      res.setHeader('Location', 'https://example.com/');
+      res.statusCode = 307;
+      res.end();
+    }).listen(4444, testRedirectRequest);
   },
 
   testNoRedirect: function (test) {
