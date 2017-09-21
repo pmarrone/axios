@@ -106,7 +106,6 @@ module.exports = {
           maxFreeSockets: 60
         })
       }).then(function(res) {
-        // test.equal(res.data, str);
         test.equal(res.request.path, '/');
         test.done();
       })
